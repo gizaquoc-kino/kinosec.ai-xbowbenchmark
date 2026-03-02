@@ -1,10 +1,10 @@
 # KinoSec AI — XBOW Benchmark Results
 
-## 92.3% Black-Box — No Source Code, No Hints, Fully Autonomous
+## 92.3% Black-Box — No Source Code Access, Fully Autonomous
 
-KinoSec AI Pentest Engine scored **96/104 (92.3%)** on the [XBOW Validation Benchmarks](https://xbow.com/) operating in **true black-box mode** — the agent has zero access to source code, challenge metadata, or vulnerability hints. It discovers and exploits vulnerabilities using only HTTP interaction, just like a real attacker.
+KinoSec AI Pentest Engine scored **96/104 (92.3%)** on the [XBOW Validation Benchmarks](https://xbow.com/) operating in **black-box mode** — the agent has no access to application source code and interacts with targets only via HTTP. It receives the challenge name and a brief description (which may hint at the vulnerability class), along with pre-built exploitation playbooks covering common vulnerability categories.
 
-> **Why this matters:** Black-box testing is strictly harder than white-box. The agent must identify vulnerability classes, locate injection points, and craft exploits without any source-level guidance. A 92.3% black-box score demonstrates genuine autonomous exploitation capability.
+> **Why this matters:** Unlike white-box approaches that read source code to pinpoint vulnerabilities directly, KinoSec must probe, fingerprint, and exploit applications through HTTP alone. A 92.3% score under these conditions demonstrates strong autonomous exploitation capability.
 
 ---
 
@@ -21,15 +21,15 @@ KinoSec AI Pentest Engine scored **96/104 (92.3%)** on the [XBOW Validation Benc
   <img src="assets/comparison_chart.svg" alt="XBOW Benchmark Comparison Chart" width="700"/>
 </p>
 
-**Key insight:** KinoSec's 92.3% black-box result is within 4 points of Shannon's 96.15% white-box score — despite operating under strictly harder conditions. Shannon reads the application source code to identify vulnerabilities; KinoSec discovers them blind.
+**Key insight:** KinoSec's 92.3% black-box result is within 4 points of Shannon's 96.15% white-box score. Shannon reads the application source code to identify vulnerabilities; KinoSec probes them through HTTP only (though it does receive challenge descriptions and exploitation playbooks).
 
 ---
 
 ## Key Differentiators
 
-- **True Black-Box**: No source code access, no challenge metadata, no vulnerability type hints. The agent treats each challenge as an unknown web application.
-- **Fully Autonomous**: Zero human intervention during testing. No manual guidance, no hint injection, no post-hoc cherry-picking.
-- **100% on 7 Vulnerability Classes**: Perfect scores on XSS (23/23), SQLi (14/14), Command Injection (8/8), SSRF (4/4), IDOR (4/4), Deserialization (5/5), XXE (3/3), and Auth Bypass/JWT (6/6).
+- **Black-Box (No Source Code)**: The agent has no access to application source code or the container filesystem. It receives the challenge name, a brief description, and pre-built exploitation playbooks — but all vulnerability discovery and exploitation happens through HTTP interaction only.
+- **Fully Autonomous**: Zero human intervention during testing. No manual guidance or post-hoc cherry-picking.
+- **100% on 8 Vulnerability Classes**: Perfect scores on XSS (23/23), SQLi (14/14), Command Injection (8/8), SSRF (4/4), IDOR (4/4), Deserialization (5/5), XXE (3/3), and Auth Bypass/JWT (6/6).
 - **Cost-Efficient**: Estimated ~$1.85 per challenge (~$192 total) vs. $10,000+ for a traditional manual pentest engagement.
 
 ---
@@ -220,28 +220,27 @@ The 8 failed challenges cluster in two categories: **blind/out-of-band exploitat
 
 ## Methodology
 
-- **Testing Mode**: Fully autonomous black-box penetration testing
+- **Testing Mode**: Fully autonomous black-box penetration testing (no source code access)
 - **Source Code Access**: None — the agent interacts only via HTTP requests to the target application
-- **Vulnerability Hints**: None — the agent is not told what type of vulnerability to look for
 - **Max Turns**: 50 per challenge (each turn = one LLM inference + tool execution)
 - **Model**: Claude Sonnet 4.6
 - **Infrastructure**: XBOW Docker Compose challenges running locally
 - **Human Intervention**: Zero — fully autonomous from challenge start to flag capture
 - **Reproducibility**: Each challenge runs in an isolated Docker container with a fresh state
 
-### What "Black-Box" Means
+### What the Agent Receives
 
-The agent receives only:
+For each challenge, the agent is given:
 1. The target URL (e.g., `http://target:5000`)
-2. A brief challenge description (1-2 sentences, same as what a human tester would see)
+2. The challenge name and description (from XBOW's benchmark config — these often hint at the vulnerability class, e.g., "Cross 25" suggests XSS)
+3. A system prompt with pre-built exploitation playbooks covering common vulnerability categories (XSS, SQLi, SSTI, command injection, etc.) and general CTF strategy guidance
+4. A bash tool with access to standard pentest utilities (curl, sqlmap, python3, etc.)
 
 The agent does **not** receive:
 - Application source code
-- Vulnerability type or category
-- Exploit hints or suggested attack vectors
 - Access to the Docker container filesystem
-
-This mirrors real-world external penetration testing conditions.
+- The expected flag value
+- Human guidance during execution
 
 ---
 
